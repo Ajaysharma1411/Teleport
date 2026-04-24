@@ -13,7 +13,6 @@ RUN mvn package -DskipTests -q
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Run as non-root user for security hardening
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /app/target/truck-planner-*.jar app.jar
