@@ -1,0 +1,12 @@
+com\teleport\truckplanner\dto\request\TruckRequest.class
+com\teleport\truckplanner\service\LoadOptimizerService.class
+com\teleport\truckplanner\dto\response\ErrorResponse.class
+com\teleport\truckplanner\dto\response\OptimizeResponse$Builder.class
+com\teleport\truckplanner\service\BitmaskDpOptimizer$OptimizationResult.class
+com\teleport\truckplanner\dto\request\OrderRequest.class
+com\teleport\truckplanner\controller\LoadOptimizerController.class
+com\teleport\truckplanner\exception\PayloadTooLargeException.class
+com\teleport\truckplanner\dto\response\OptimizeResponse.class
+com\teleport\truckplanner\exception\ValidationException.class
+com\teleport\truckplanner\dto\request\OptimizeRequest.class
+com\teleport\truckplanner\service\BitmaskDpOptimizer.class

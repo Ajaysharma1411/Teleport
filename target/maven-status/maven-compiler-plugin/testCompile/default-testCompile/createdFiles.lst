@@ -1,0 +1,4 @@
+com\teleport\truckplanner\service\LoadOptimizerServiceTest.class
+com\teleport\truckplanner\service\BitmaskDpOptimizerTest.class
+com\teleport\truckplanner\service\OptimizationEngineTest.class
+com\teleport\truckplanner\TruckPlannerApplicationTests.class

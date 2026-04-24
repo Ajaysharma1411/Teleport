@@ -1,0 +1,16 @@
+-------------------------------------------------------------------------------
+Test set: com.teleport.truckplanner.service.OptimizationEngineTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.075 s <<< FAILURE! -- in com.teleport.truckplanner.service.OptimizationEngineTest
+com.teleport.truckplanner.service.OptimizationEngineTest.highPriorityItemLoadedWhenCapacityIsLimited -- Time elapsed: 0.041 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting any elements of:
+  [ItemRequest[id=low, name=Low priority, weightKg=400.0, volumeM3=2.0, priority=1]]
+to match given predicate but none did.
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
+	at com.teleport.truckplanner.service.OptimizationEngineTest.highPriorityItemLoadedWhenCapacityIsLimited(OptimizationEngineTest.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
