@@ -11,10 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Orchestrates plan creation and retrieval, backed by a Caffeine in-memory cache.
- * The service is completely stateless — no database interaction of any kind.
- */
 @Service
 public class TruckPlannerService {
 
@@ -27,24 +23,14 @@ public class TruckPlannerService {
                 "Cache 'loadPlans' not configured");
     }
 
-    /**
-     * Compute an optimal load plan and store it in the cache.
-     *
-     * @return the computed plan (planId can be used to retrieve it later)
-     */
-    public LoadPlanResponse createPlan(LoadPlanRequest request) {
+     public LoadPlanResponse createPlan(LoadPlanRequest request) {
         String planId = UUID.randomUUID().toString();
         LoadPlanResponse response = engine.optimize(planId, request);
         planCache.put(planId, response);
         return response;
     }
 
-    /**
-     * Retrieve a previously computed plan from the cache.
-     *
-     * @throws PlannerException 404 if the plan has expired or never existed
-     */
-    public LoadPlanResponse getPlan(String planId) {
+   public LoadPlanResponse getPlan(String planId) {
         Cache.ValueWrapper wrapper = planCache.get(planId);
         if (wrapper == null) {
             throw new PlannerException(

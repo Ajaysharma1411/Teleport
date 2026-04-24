@@ -10,21 +10,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-/**
- * Unit tests for BitmaskDpOptimizer.
- *
- * These tests verify the core DP algorithm in isolation — no Spring context loaded.
- * All tests pass orders that are already route- and hazmat-compatible (grouping
- * is the responsibility of LoadOptimizerService, not the optimizer itself).
- */
 class BitmaskDpOptimizerTest {
 
     private static final int MAX_WEIGHT = 44_000;  // lbs
     private static final int MAX_VOLUME = 3_000;   // cuft
 
     private final BitmaskDpOptimizer optimizer = new BitmaskDpOptimizer();
-
-    // ── Edge cases ────────────────────────────────────────────────────────────
 
     @Test
     void emptyOrderList_returnsEmptyResult() {
@@ -65,8 +56,6 @@ class BitmaskDpOptimizerTest {
         assertThat(result.selectedOrderIds()).isEmpty();
     }
 
-    // ── Two-order scenarios ───────────────────────────────────────────────────
-
     @Test
     void twoOrders_bothFit_selectsBoth() {
         // 18 000 + 12 000 = 30 000 lbs (fits),  1 200 + 900 = 2 100 cuft (fits)
@@ -85,8 +74,6 @@ class BitmaskDpOptimizerTest {
 
     @Test
     void twoOrders_onlyOnesFitByWeight_picksHigherPayout() {
-        // o1 and o2 together exceed weight; individually both fit.
-        // o2 has higher payout → should be selected alone.
         var result = optimizer.findOptimal(
                 List.of(
                         order("o1", 100_00L, 30_000, 500),   // payout $100
@@ -114,17 +101,7 @@ class BitmaskDpOptimizerTest {
         assertThat(result.totalPayoutCents()).isEqualTo(300_00L);
     }
 
-    // ── Problem-statement example ─────────────────────────────────────────────
-
-    /**
-     * Reproduces the exact scenario from the assignment spec (non-hazmat group only):
-     *   ord-001: $2 500, 18 000 lbs, 1 200 cuft
-     *   ord-002: $1 800, 12 000 lbs,   900 cuft
-     *   Truck:  44 000 lbs, 3 000 cuft
-     *
-     * Expected: select both → $4 300 total, 30 000 lbs, 2 100 cuft
-     */
-    @Test
+   @Test
     void assignmentExample_nonHazmatOrders_selectsBothForMaxPayout() {
         var result = optimizer.findOptimal(
                 List.of(
@@ -139,8 +116,6 @@ class BitmaskDpOptimizerTest {
         assertThat(result.totalVolumeCuft()).isEqualTo(2_100);
     }
 
-    // ── All orders infeasible ─────────────────────────────────────────────────
-
     @Test
     void allOrdersExceedCapacity_returnsEmpty() {
         var result = optimizer.findOptimal(
@@ -153,8 +128,6 @@ class BitmaskDpOptimizerTest {
         assertThat(result.selectedOrderIds()).isEmpty();
         assertThat(result.totalPayoutCents()).isZero();
     }
-
-    // ── Performance: N = 22 orders must complete well under 800 ms ───────────
 
     @Test
     void twentyTwoOrders_completesUnder800ms() {
@@ -173,8 +146,6 @@ class BitmaskDpOptimizerTest {
         assertThat(result.selectedOrderIds()).isNotEmpty();
         assertThat(result.totalPayoutCents()).isGreaterThan(0L);
     }
-
-    // ── Helper ───────────────────────────────────────────────────────────────
 
     private static OrderRequest order(String id, long payoutCents, int weightLbs, int volumeCuft) {
         OrderRequest o = new OrderRequest();

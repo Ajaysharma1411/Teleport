@@ -11,41 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Orchestrates the full load-optimization pipeline.
- *
- * Pipeline stages
- * ───────────────
- * 1. Payload-size guard    — reject > 22 orders with HTTP 413.
- * 2. Business validation   — duplicate IDs, incoherent date windows.
- * 3. Compatibility grouping — orders are partitioned by (origin, destination, hazmat).
- *    Only orders in the same partition can share a truck:
- *      • Same headhaul lane (origin → destination, case-insensitive, trimmed).
- *      • Same hazmat class (hazmat orders cannot mix with standard freight).
- * 4. Bitmask DP per group  — BitmaskDpOptimizer finds the optimal subset per group.
- * 5. Global best selection — the highest-payout result across all groups is returned.
- * 6. Response construction — utilisation percentages rounded to 2 decimal places.
- *
- * ── Caching strategy (mentioned, not wired up) ─────────────────────────────────
- * Because the service is stateless and the DP completes in < 100 ms for n=22,
- * caching is only valuable when the same request is repeated.  To add it:
- *
- *   @Cacheable(cacheNames = "optimizations",
- *              key         = "T(java.util.Objects).hash(#request)")
- *
- * This requires equals/hashCode on all request objects.  The trade-off is
- * ~64 MB of cached DP arrays per unique request vs. < 100 ms recompute time —
- * for most logistics patterns recomputation is preferable.
- * ────────────────────────────────────────────────────────────────────────────────
- */
 @Service
 public class LoadOptimizerService {
 
-    /**
-     * Maximum orders per request.
-     * The bitmask DP allocates 2^N arrays; N=23 would require 512 MB — impractical.
-     * N=22 → 4 M states → ~64 MB, well within Docker container limits.
-     */
     private static final int MAX_ORDERS = 22;
 
     private final BitmaskDpOptimizer optimizer;
@@ -53,16 +21,12 @@ public class LoadOptimizerService {
     public LoadOptimizerService(BitmaskDpOptimizer optimizer) {
         this.optimizer = optimizer;
     }
-
-    // ── Public API ────────────────────────────────────────────────────────────
-
     public OptimizeResponse optimize(OptimizeRequest request) {
         TruckRequest       truck  = request.getTruck();
         List<OrderRequest> orders = request.getOrders() == null
                 ? Collections.emptyList()
                 : request.getOrders();
 
-        // Stage 1 — payload size guard (→ 413 via PayloadTooLargeException)
         if (orders.size() > MAX_ORDERS) {
             throw new PayloadTooLargeException(
                     "Request contains " + orders.size() + " orders; maximum supported is " + MAX_ORDERS
@@ -94,13 +58,6 @@ public class LoadOptimizerService {
         // Stage 5 — build the HTTP response
         return buildResponse(truck, best);
     }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Validates business rules that go beyond what Bean Validation annotations
-     * can express on the DTO level.
-     */
     private void validateOrders(List<OrderRequest> orders) {
         Set<String> seenIds = new HashSet<>();
         for (OrderRequest o : orders) {
@@ -117,16 +74,6 @@ public class LoadOptimizerService {
         }
     }
 
-    /**
-     * Partitions orders by their compatibility key:
-     *   normalised(origin) + "→" + normalised(destination) + "|" + hazmat-class
-     *
-     * Normalisation: lowercase + trim.  This ensures "Los Angeles, CA" and
-     * "los angeles, CA " are treated as the same origin city.
-     *
-     * Hazmat class: "HAZ" vs "STD".  Hazmat freight must be isolated — carrying
-     * hazmat together with standard freight violates DOT regulations.
-     */
     private Map<String, List<OrderRequest>> groupByCompatibility(List<OrderRequest> orders) {
         return orders.stream().collect(Collectors.groupingBy(o ->
                 normalise(o.getOrigin())

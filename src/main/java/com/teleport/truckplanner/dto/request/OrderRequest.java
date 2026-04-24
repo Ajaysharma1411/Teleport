@@ -6,18 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
 
-/**
- * A single candidate order to be evaluated for loading.
- *
- * Money rule: payout is stored as a 64-bit integer (cents) throughout the entire
- * pipeline.  Using long avoids all floating-point rounding errors that would arise
- * with double (e.g. $2500.00 stored as 250000 cents, not 2500.00).
- *
- * Hazmat note: the JSON key is "is_hazmat" but the Java field is named "hazmat"
- * so that the getter is isHazmat() — a conventional boolean accessor name.
- * @JsonProperty pins the JSON name explicitly, overriding the global SNAKE_CASE
- * strategy for this one field.
- */
 public class OrderRequest {
 
     @NotBlank(message = "order id is required")
@@ -53,11 +41,6 @@ public class OrderRequest {
     @NotNull(message = "delivery_date is required")
     private LocalDate deliveryDate;
 
-    /**
-     * Hazmat orders may not share a truck with non-hazmat orders.
-     * The @JsonProperty annotations (on field AND setter) ensure Jackson maps
-     * the JSON key "is_hazmat" to this field both when reading and writing.
-     */
     @JsonProperty("is_hazmat")
     private boolean hazmat;
 

@@ -15,19 +15,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Unit tests for LoadOptimizerService — covers the orchestration logic:
- * validation, compatibility grouping, and response assembly.
- *
- * BitmaskDpOptimizer is used as-is (not mocked) because its correctness is
- * already validated in BitmaskDpOptimizerTest and it has no I/O side effects.
- */
 class LoadOptimizerServiceTest {
 
     private final LoadOptimizerService service =
             new LoadOptimizerService(new BitmaskDpOptimizer());
-
-    // ── Empty / no-op scenarios ────────────────────────────────────────────────
 
     @Test
     void emptyOrdersList_returnsEmptySelection() {
@@ -50,20 +41,7 @@ class LoadOptimizerServiceTest {
         assertThat(response.getSelectedOrderIds()).isEmpty();
     }
 
-    // ── Full problem-statement example ────────────────────────────────────────
 
-    /**
-     * The three orders from the assignment spec:
-     *   ord-001 non-hazmat: $2 500, 18 000 lbs, 1 200 cuft
-     *   ord-002 non-hazmat: $1 800, 12 000 lbs,   900 cuft
-     *   ord-003 hazmat:     $3 200, 30 000 lbs, 1 800 cuft
-     *
-     * Grouping splits them into two groups:
-     *   Non-hazmat: {ord-001, ord-002} → combined $4 300 (fits)
-     *   Hazmat:     {ord-003}          → $3 200 alone (fits)
-     *
-     * Expected winner: non-hazmat group with $4 300.
-     */
     @Test
     void assignmentExample_selectsNonHazmatGroupAsHigherPayout() {
         List<OrderRequest> orders = List.of(
@@ -128,11 +106,9 @@ class LoadOptimizerServiceTest {
 
         OptimizeResponse response = service.optimize(request(truck44k(), orders));
 
-        // Both orders are on the same normalised route → both should be selected
         assertThat(response.getSelectedOrderIds()).containsExactlyInAnyOrder("o1", "o2");
     }
 
-    // ── Validation: duplicates and date windows ───────────────────────────────
 
     @Test
     void duplicateOrderIds_throwsValidationException() {
@@ -157,7 +133,6 @@ class LoadOptimizerServiceTest {
                 .hasMessageContaining("o1");
     }
 
-    // ── Payload size guard ────────────────────────────────────────────────────
 
     @Test
     void moreThan22Orders_throwsPayloadTooLargeException() {
@@ -176,15 +151,12 @@ class LoadOptimizerServiceTest {
         for (int i = 0; i < 22; i++) {
             orders.add(order("o" + i, 100_00L, 1_000, 100, false));
         }
-        // Should not throw — 22 is the limit, not 21
         assertThat(service.optimize(request(truck44k(), orders))).isNotNull();
     }
 
-    // ── Utilisation calculation ───────────────────────────────────────────────
 
     @Test
     void utilizationRoundedToTwoDecimalPlaces() {
-        // 10 000 / 44 000 = 22.727272… → rounds to 22.73
         OptimizeResponse response = service.optimize(
                 request(truck44k(), List.of(order("o1", 100_00L, 10_000, 300, false))));
 

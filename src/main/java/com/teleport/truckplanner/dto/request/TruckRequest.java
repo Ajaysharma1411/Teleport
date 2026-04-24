@@ -4,12 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-/**
- * Describes the truck available for this optimization run.
- *
- * Capacities are intentionally integers (no float) to avoid rounding surprises
- * when comparing against accumulated order weights/volumes later in the DP step.
- */
 public class TruckRequest {
 
     @NotBlank(message = "truck.id is required")

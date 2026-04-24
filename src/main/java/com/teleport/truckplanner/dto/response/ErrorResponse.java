@@ -4,18 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.util.Map;
 
-// Exclude null fields so the "details" key is absent when there are no field-level errors
 @JsonInclude(JsonInclude.Include.NON_NULL)
-
-/**
- * Uniform error body returned for all 4xx / 5xx responses.
- *
- * {
- *   "timestamp": "2025-12-05T10:15:30Z",
- *   "error":     "Validation failed",
- *   "details":   { "truck.id": "truck.id is required" }   ← present only on 400
- * }
- */
 public class ErrorResponse {
 
     private final String              timestamp;

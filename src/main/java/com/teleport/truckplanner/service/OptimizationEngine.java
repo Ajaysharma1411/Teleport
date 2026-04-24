@@ -7,21 +7,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Core bin-packing engine using the Best Fit Decreasing (BFD) heuristic.
- *
- * <p>Algorithm overview:
- * <ol>
- *   <li>Sort items by priority DESC, then by combined normalised size DESC.</li>
- *   <li>For each item, scan all trucks and pick the one that (a) still has capacity
- *       and (b) has the <em>smallest</em> remaining combined capacity after the item
- *       would be placed — the "tightest fit" that avoids fragmenting large trucks.</li>
- *   <li>Items that fit in no truck are collected as unassigned.</li>
- * </ol>
- *
- * <p>Complexity: O(I × T) where I = number of items, T = number of trucks.
- * For typical logistics inputs this is negligible.
- */
 @Component
 public class OptimizationEngine {
 
@@ -52,11 +37,6 @@ public class OptimizationEngine {
                 Collections.unmodifiableList(unassigned),
                 buildSummary(request, assignments, unassigned));
     }
-
-    // -------------------------------------------------------------------------
-    // Sorting
-    // -------------------------------------------------------------------------
-
     private List<ItemRequest> sortItems(List<ItemRequest> items) {
         double maxW = items.stream().mapToDouble(ItemRequest::weightKg).max().orElse(1.0);
         double maxV = items.stream().mapToDouble(ItemRequest::volumeM3).max().orElse(1.0);
@@ -71,11 +51,7 @@ public class OptimizationEngine {
                 .collect(Collectors.toList());
     }
 
-    // -------------------------------------------------------------------------
-    // Best-Fit selection
-    // -------------------------------------------------------------------------
-
-    private Optional<TruckState> findBestFit(ItemRequest item, List<TruckState> trucks) {
+  private Optional<TruckState> findBestFit(ItemRequest item, List<TruckState> trucks) {
         TruckState best = null;
         double bestScore = Double.MAX_VALUE;
 
@@ -96,9 +72,6 @@ public class OptimizationEngine {
         return Optional.ofNullable(best);
     }
 
-    // -------------------------------------------------------------------------
-    // Response builders
-    // -------------------------------------------------------------------------
 
     private TruckAssignmentDto toDto(TruckState s) {
         double usedW = s.truck.maxWeightKg() - s.remainingWeightKg;
@@ -136,9 +109,6 @@ public class OptimizationEngine {
         return Math.round(v * 100.0) / 100.0;
     }
 
-    // -------------------------------------------------------------------------
-    // Mutable truck state (used only during a single optimize() call)
-    // -------------------------------------------------------------------------
 
     static final class TruckState {
         final TruckRequest truck;

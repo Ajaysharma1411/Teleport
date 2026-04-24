@@ -1,23 +1,6 @@
 package com.teleport.truckplanner.dto.response;
 
 import java.util.List;
-
-/**
- * Response body for POST /api/v1/load-optimizer/optimize.
- *
- * All monetary values are in integer cents to match the input contract.
- * Utilization percentages are rounded to 2 decimal places.
- *
- * The global SNAKE_CASE Jackson strategy serializes Java camelCase fields
- * to snake_case JSON keys automatically:
- *   truckId               → truck_id
- *   selectedOrderIds      → selected_order_ids
- *   totalPayoutCents      → total_payout_cents
- *   totalWeightLbs        → total_weight_lbs
- *   totalVolumeCuft       → total_volume_cuft
- *   utilizationWeightPercent → utilization_weight_percent
- *   utilizationVolumePercent → utilization_volume_percent
- */
 public class OptimizeResponse {
 
     private String       truckId;
